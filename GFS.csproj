@@ -1,11 +1,32 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <ItemGroup>
-      <ProjectReference Include="IO\IO.csproj" />
-    </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>ThemModdingHerds.$(MSBuildProjectName)</AssemblyName>
+        <Version>1.0.1</Version>
+        <Authors>NightTheFox</Authors>
+        <Description>GFS parser library for C#</Description>
+        <PackageProjectUrl>https://github.com/ThemModdingHerds</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ThemModdingHerds/gfs</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageOutputPath>bin\Package</PackageOutputPath>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <IncludeSymbols>True</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
+    <ItemGroup>
+      <PackageReference Include="ThemModdingHerds.IO" Version="1.0.4" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Update="LICENSE">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
+      <None Update="README.md">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
+    </ItemGroup>
 </Project>

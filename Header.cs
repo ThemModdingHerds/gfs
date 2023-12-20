@@ -6,10 +6,21 @@ public class Header(uint offset,ulong entryCount)
 {
     public readonly static string IDENTIFIER = "Reverge Package File";
     public readonly static string VERSION = "1.1";
-    public uint DataOffset = offset;
-    public string Identifier = IDENTIFIER;
-    public string Version = VERSION;
-    public ulong EntryCount = entryCount;
+    public uint DataOffset {get;set;} = offset;
+    public string Identifier {get;set;} = IDENTIFIER;
+    public string Version {get;set;} = VERSION;
+    public ulong EntryCount {get;set;} = entryCount;
+    public static Header FromEntries(List<FileEntry> entries,string identifier,string version)
+    {
+        uint offset = 4 + 8 + (uint)identifier.Length + 8 + (uint)version.Length + 8;
+        foreach (FileEntry entry in entries)
+            offset += 8 + (uint)entry.Path.Length + 8 + 4;
+        return new(offset,(ulong)entries.Capacity,identifier,version);
+    }
+    public static Header FromEntries(List<FileEntry> entries)
+    {
+        return FromEntries(entries,IDENTIFIER,VERSION);
+    }
     public Header(uint offset,ulong entryCount,string identifier,string version): this(offset,entryCount)
     {
         Identifier = identifier;

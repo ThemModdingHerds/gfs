@@ -64,6 +64,10 @@ public static class FileEntryExt
         {
             FileEntry entry = ReadGFSFileEntry(reader,(long)runningOffset);
             entries.Add(entry);
+            long oldOffset = reader.Offset;
+            reader.Offset = entry.Offset;
+            entry.Data = reader.ReadBytes((int)entry.Size);
+            reader.Offset = oldOffset;
             runningOffset = (ulong)entry.Offset + entry.Size;
         }
 

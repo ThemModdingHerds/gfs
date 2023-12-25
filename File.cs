@@ -1,66 +1,49 @@
-﻿using BinaryWriter = ThemModdingHerds.IO.BinaryWriter;
-using BinaryReader = ThemModdingHerds.IO.BinaryReader;
+﻿using ThemModdingHerds.IO.Binary;
+using ThemModdingHerds.IO;
+using ThemModdingHerds.GFS;
 
-namespace ThemModdingHerds.GFS;
-public class File
+namespace ThemModdingHerds;
+public class GFSFile(Header header, List<FileEntry> entries)
 {
-    public readonly Header Header;
-    public readonly List<FileEntry> Entries;
-    public readonly List<ulong> Offsets;
-    public File(Header header, List<FileEntry> entries)
+    public Header Header {get;} = header;
+    public List<FileEntry> Entries {get;} = entries;
+    public static GFSFile Read(string path)
     {
-        Header = header;
-        Entries = entries;
-        Offsets = GetOffsets();
-    }
-    protected List<ulong> GetOffsets()
-    {
-        List<ulong> _offsets = [];
-
-        ulong runningOffset = Header.DataOffset;
-
-        foreach (FileEntry item in Entries)
+        if(!Directory.Exists(path))
+            throw new Exception(path + " does not exist");
+        if(!(File.GetAttributes(path) == FileAttributes.Directory))
+            throw new Exception(path + " is not a folder");
+        string[] files = Directory.GetFiles(path,"*.*",SearchOption.AllDirectories);
+        List<FileEntry> entries = [];
+        int dataoffset = Header.SIZE;
+        foreach(string file in files)
         {
-            runningOffset += ((ulong)item.Alignment - (runningOffset % (ulong)item.Alignment)) % (ulong)item.Alignment;
-            _offsets.Add(runningOffset);
-            runningOffset += item.Size;
+            FileEntry entry = FileEntry.Read(path,file);
+            int size = FileEntry.SIZE(entry.Path);
+            dataoffset += size;
         }
-
-        return _offsets;
-    }
-    public void ReadData(BinaryReader reader)
-    {
-        for (int i = 0; i < Offsets.Count; i++)
+        Header header = new(dataoffset,entries.Count);
+        long runningOffset = dataoffset;
+        foreach(FileEntry entry in entries)
         {
-            ulong offset = Offsets[i];
-            FileEntry entry = Entries[i];
-            reader.Offset = (long)offset;
-            entry.Data = reader.ReadBytes((int)entry.Size);
+            runningOffset += (entry.Alignment - (runningOffset % entry.Alignment)) % entry.Alignment;
+            entry.Offset = runningOffset;
+            runningOffset += entry.Size;
         }
+        return new(header,entries);
     }
 }
 public static class FileExt
 {
-    public static File ReadGFSFile(this BinaryReader reader)
+    public static GFSFile ReadGFSFile(this Reader reader)
     {
         Header header = reader.ReadHeader();
         List<FileEntry> entries = reader.ReadGFSFileEntries(header);
-        File file = new(header,entries);
-        file.ReadData(reader);
-        return file;
+        return new(header,entries);
     }
-    public static void Write(this BinaryWriter writer,File file)
+    public static void Write(this Writer writer,GFSFile file)
     {
         writer.Write(file.Header);
         writer.Write(file.Entries);
-        for (int i = 0; i < file.Offsets.Count; i++)
-        {
-            ulong offset = file.Offsets[i];
-            FileEntry entry = file.Entries[i];
-            writer.Offset = (long)offset;
-            if(!entry.HasData)
-                throw new Exception("entry has not data");
-            writer.Write(entry.Data);
-        }
     }
 }

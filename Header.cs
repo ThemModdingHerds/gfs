@@ -1,16 +1,16 @@
-using BinaryWriter = ThemModdingHerds.IO.BinaryWriter;
-using BinaryReader = ThemModdingHerds.IO.BinaryReader;
-
+using ThemModdingHerds.IO.Binary;
+using ThemModdingHerds.IO;
 namespace ThemModdingHerds.GFS;
-public class Header(uint offset,ulong entryCount)
+public class Header(int offset,long entryCount)
 {
     public readonly static string IDENTIFIER = "Reverge Package File";
     public readonly static string VERSION = "1.1";
-    public uint DataOffset = offset;
+    public readonly static int SIZE = 4 + 8 + IDENTIFIER.Length + 8 + VERSION.Length + 8;
+    public int DataOffset = offset;
     public string Identifier = IDENTIFIER;
     public string Version = VERSION;
-    public ulong EntryCount = entryCount;
-    public Header(uint offset,ulong entryCount,string identifier,string version): this(offset,entryCount)
+    public long EntryCount = entryCount;
+    public Header(int offset,long entryCount,string identifier,string version): this(offset,entryCount)
     {
         Identifier = identifier;
         Version = version;
@@ -18,22 +18,22 @@ public class Header(uint offset,ulong entryCount)
 }
 public static class HeaderExt
 {
-    public static Header ReadHeader(this BinaryReader reader)
+    public static Header ReadHeader(this Reader reader)
     {
-        reader.Endianness = IO.Endianness.Big;
-        uint offset = reader.ReadUInt();
+        reader.Endianness = Endianness.Big;
+        int offset = reader.ReadInt();
         string id = reader.ReadPascal64String();
         if(id != Header.IDENTIFIER)
             throw new Exception("Header identifier mismatch");
         string version = reader.ReadPascal64String();
         if(version != Header.VERSION)
             throw new Exception("Header version mismatch");
-        ulong entryCount = reader.ReadULong();
+        long entryCount = reader.ReadLong();
         return new Header(offset,entryCount);
     }
-    public static void Write(this BinaryWriter writer,Header header)
+    public static void Write(this Writer writer,Header header)
     {
-        writer.Endianness = IO.Endianness.Big;
+        writer.Endianness = Endianness.Big;
         writer.Write(header.DataOffset);
         writer.WritePascal64String(header.Identifier);
         writer.WritePascal64String(header.Version);

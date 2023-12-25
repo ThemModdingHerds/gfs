@@ -56,7 +56,21 @@ using ThemModdingHerds.GFS;
 using ThemModdingHerds.IO;
 
 BinaryReader reader = new BinaryReader(someStreamOrFilePath);
-File file = reader.ReadGFSFile();
+GFSFile file = reader.ReadGFSFile();
 Header header = file.Header; // contains file count, offset, version and file identifier
 List<FileEntry> entries = file.Entries; // contains all the files and their data
 ```
+
+or parsing a folder into one:
+
+```c#
+using ThemModdingHerds.GFS;
+
+GFSFile file = GFSFile.Read(pathToFolder); // now the folder became a .gfs file
+```
+
+## Credits
+
+- [SkullMod][skullmod-github-link]
+
+[skullmod-github-link]: https://github.com/BlenderCN-Org/SkullMod

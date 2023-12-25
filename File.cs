@@ -1,5 +1,4 @@
 ﻿using ThemModdingHerds.IO.Binary;
-using ThemModdingHerds.IO;
 using ThemModdingHerds.GFS;
 
 namespace ThemModdingHerds;

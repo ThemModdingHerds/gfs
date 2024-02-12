@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GFS", "GFS.csproj", "{7906E5CF-8A30-4D37-B609-B3A0FA92BD21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GFS", "GFS\GFS.csproj", "{7906E5CF-8A30-4D37-B609-B3A0FA92BD21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GFS.Test", "GFS.Test\GFS.Test.csproj", "{A621D356-A371-4D07-BFE1-9A52F29577CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7906E5CF-8A30-4D37-B609-B3A0FA92BD21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7906E5CF-8A30-4D37-B609-B3A0FA92BD21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7906E5CF-8A30-4D37-B609-B3A0FA92BD21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A621D356-A371-4D07-BFE1-9A52F29577CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A621D356-A371-4D07-BFE1-9A52F29577CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A621D356-A371-4D07-BFE1-9A52F29577CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A621D356-A371-4D07-BFE1-9A52F29577CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

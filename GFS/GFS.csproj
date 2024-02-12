@@ -4,7 +4,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>ThemModdingHerds.$(MSBuildProjectName)</AssemblyName>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <Authors>NightTheFox</Authors>
         <Description>GFS parser library for C#</Description>
         <PackageProjectUrl>https://github.com/ThemModdingHerds</PackageProjectUrl>
@@ -18,7 +18,7 @@
         <PackageTags>library;revergepackagefile;gfs;parser;themfightingherds;skullgirls;tfh;sg</PackageTags>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="ThemModdingHerds.IO" Version="1.1.0" />
+      <PackageReference Include="ThemModdingHerds.IO" Version="1.1.1" />
     </ItemGroup>
     <ItemGroup>
       <None Update="LICENSE">

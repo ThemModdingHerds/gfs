@@ -3,8 +3,8 @@ using ThemModdingHerds.IO;
 namespace ThemModdingHerds.GFS;
 public class Header(int offset,long entryCount)
 {
-    public readonly static string IDENTIFIER = "Reverge Package File";
-    public readonly static string VERSION = "1.1";
+    public const string IDENTIFIER = "Reverge Package File";
+    public const string VERSION = "1.1";
     public readonly static int SIZE = 4 + 8 + IDENTIFIER.Length + 8 + VERSION.Length + 8;
     public int DataOffset = offset;
     public string Identifier = IDENTIFIER;

@@ -59,13 +59,16 @@ public static class FileEntryExt
             entry.Offset = runningOffset;
             
             long oldOffset = reader.Offset;
-            reader.Offset = oldOffset;
+            reader.Offset = runningOffset;
 
             byte[] data = reader.ReadBytes((int)entry.Size);
+
+            reader.Offset = oldOffset;
 
             entry.Data = data;
 
             runningOffset += entry.Size;
+            entries.Add(entry);
         }
 
         return entries;

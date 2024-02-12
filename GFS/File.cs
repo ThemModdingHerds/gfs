@@ -2,10 +2,9 @@
 using ThemModdingHerds.GFS;
 
 namespace ThemModdingHerds;
-public class GFSFile(Header header, List<FileEntry> entries)
+public class GFSFile(Header header) : List<FileEntry>()
 {
     public Header Header {get;} = header;
-    public List<FileEntry> Entries {get;} = entries;
     public static GFSFile Read(string path)
     {
         if(!Directory.Exists(path))
@@ -29,7 +28,9 @@ public class GFSFile(Header header, List<FileEntry> entries)
             entry.Offset = runningOffset;
             runningOffset += entry.Size;
         }
-        return new(header,entries);
+        GFSFile gfs = new(header);
+        gfs.AddRange(entries);
+        return gfs;
     }
 }
 public static class FileExt
@@ -38,11 +39,14 @@ public static class FileExt
     {
         Header header = reader.ReadHeader();
         List<FileEntry> entries = reader.ReadGFSFileEntries(header);
-        return new(header,entries);
+        
+        GFSFile gfs = new(header);
+        gfs.AddRange(entries);
+        return gfs;
     }
     public static void Write(this Writer writer,GFSFile file)
     {
         writer.Write(file.Header);
-        writer.Write(file.Entries);
+        writer.Write(file.ToList());
     }
 }

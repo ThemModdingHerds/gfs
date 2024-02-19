@@ -56,9 +56,9 @@ using ThemModdingHerds.GFS;
 using ThemModdingHerds.IO;
 
 BinaryReader reader = new BinaryReader(someStreamOrFilePath);
-GFSFile file = reader.ReadGFSFile();
-Header header = file.Header; // contains file count, offset, version and file identifier
-List<FileEntry> entries = file.Entries; // contains all the files and their data
+RevergePackage file = reader.ReadRevergePackage(); // extends List<RevergePackageEntry>
+RevergePackageHeader header = file.Header; // contains file count, offset, version and file identifier
+RevergePackageEntry entry = file[index]; // contains all the files and their data
 ```
 
 or parsing a folder into one:

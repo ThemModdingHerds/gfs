@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "C#: GFS.Test",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}\\GFS.Test\\GFS.Test.csproj",
+            "launchConfigurationId": "TargetFramework=;GFS.Test"
+        }
+    ]
+}

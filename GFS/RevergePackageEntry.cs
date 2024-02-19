@@ -2,59 +2,57 @@
 using ThemModdingHerds.IO;
 
 namespace ThemModdingHerds.GFS;
-public class FileEntry(string path,long size,int alignment)
+public class RevergePackageEntry(string path,long size,int alignment)
 {
     public static int SIZE(string path) => 8 + path.Length + 8 + 4;
     public string Path {get;set;} = path;
-    public long Size {get;} = size;
-    public int Alignment {get;} = alignment;
+    public long Size {get;set;} = size;
+    public int Alignment {get;set;} = alignment;
     public byte[] Data {get;set;} = [];
-    public bool HasData {get => Size > 0;}
     public long Offset {get;set;}
-    public FileEntry(string path,long size,int alignment,byte[] data) : this(path,size,alignment)
+    public RevergePackageEntry(string path,long size,int alignment,byte[] data) : this(path,size,alignment)
     {
         Data = data;
     }
-    public static FileEntry Read(string dirpath,string filepath,int alignment = 1)
+    public static RevergePackageEntry Create(string dirpath,string filepath,int alignment = 1)
     {
         if(!Directory.Exists(dirpath))
-            throw new Exception(dirpath + " does not exist");
+            throw new DirectoryNotFoundException($"{dirpath} does not exist");
         if(!File.Exists(filepath))
-            throw new Exception(filepath + " does not exist");
-        string path = filepath.Replace(dirpath,"");
-        if(path.StartsWith('/'))
-            path = path[1..];
+            throw new FileNotFoundException($"{filepath} does not exist");
+        string path = System.IO.Path.GetRelativePath(dirpath,filepath)
+        .Replace("\\","/");
         byte[] data = File.ReadAllBytes(filepath);
         return new(path,data.Length,alignment,data);
     }
 }
-public static class FileEntryExt
+public static class RevergePackageEntryExt
 {
-    public static FileEntry ReadGFSFileEntry(this Reader reader)
+    public static RevergePackageEntry ReadRevergePackageEntry(this Reader reader)
     {
         reader.Endianness = Endianness.Big;
         string path = reader.ReadPascal64String();
         long size = reader.ReadLong();
         int align = reader.ReadInt();
-        return new FileEntry(path, size, align);
+        return new RevergePackageEntry(path, size, align);
     }
-    public static void Write(this Writer writer,FileEntry entry)
+    public static void Write(this Writer writer,RevergePackageEntry entry)
     {
         writer.Endianness = Endianness.Big;
         writer.WritePascal64String(entry.Path);
         writer.Write(entry.Size);
         writer.Write(entry.Alignment);
     }
-    public static List<FileEntry> ReadGFSFileEntries(this Reader reader, Header header)
+    public static List<RevergePackageEntry> ReadRevergePackageEntries(this Reader reader, RevergePackageHeader header)
     {
         reader.Endianness = Endianness.Big;
-        List<FileEntry> entries = [];
+        List<RevergePackageEntry> entries = [];
 
         long runningOffset = header.DataOffset;
 
         for(long index = 0;index < header.EntryCount;index++)
         {
-            FileEntry entry = ReadGFSFileEntry(reader);
+            RevergePackageEntry entry = ReadRevergePackageEntry(reader);
             runningOffset += (entry.Alignment - (runningOffset % entry.Alignment)) % entry.Alignment;
             entry.Offset = runningOffset;
             
@@ -73,10 +71,10 @@ public static class FileEntryExt
 
         return entries;
     }
-    public static void Write(this Writer writer,List<FileEntry> entries)
+    public static void Write(this Writer writer,IEnumerable<RevergePackageEntry> entries)
     {
         writer.Endianness = Endianness.Big;
-        foreach (FileEntry entry in entries)
+        foreach (RevergePackageEntry entry in entries)
         {
             Write(writer,entry);
 

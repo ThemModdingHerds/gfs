@@ -14,6 +14,14 @@ public class RevergePackageHeader(int offset, long entryCount, string identifier
     {
 
     }
+    public RevergePackageHeader(string id,string ver): this(SIZE(id,ver),0,id,ver)
+    {
+
+    }
+    public RevergePackageHeader(): this(IDENTIFIER,VERSION)
+    {
+
+    }
     public bool Verify(string id,string ver) => Identifier == id && Version == ver;
     public bool Verify() => Verify(IDENTIFIER,VERSION);
 }

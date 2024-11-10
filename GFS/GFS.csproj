@@ -4,7 +4,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>ThemModdingHerds.$(MSBuildProjectName)</AssemblyName>
-        <Version>2.1.0</Version>
+        <Version>2.1.1</Version>
         <Authors>NightTheFox</Authors>
         <Description>GFS parser library for C#</Description>
         <PackageProjectUrl>https://github.com/ThemModdingHerds</PackageProjectUrl>

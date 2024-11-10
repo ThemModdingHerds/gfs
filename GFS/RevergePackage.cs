@@ -12,7 +12,10 @@ public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair
         RevergePackageHeader header = new(id,ver);
         RevergePackage gfs = new(header);
         foreach(RevergePackage pak in files)
+        {
+            gfs.Metadata.Add(pak.Metadata);
             gfs.AddRange(pak);
+        }
         gfs.RecalculateEntries();
         return gfs;
     }
@@ -53,8 +56,16 @@ public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair
             entry.Offset = runningOffset;
             runningOffset += entry.Size;
         }
+        RevergePackage gfs = new(header,entries);
+        // check if perhaps a metadata file exists
+        string metadatapath = $"{path}.metadata";
+        if(File.Exists(metadatapath))
+        {
+            RevergePackageMetadata metadata = RevergePackageMetadata.Read(metadatapath);
+            gfs.Metadata.Merge(metadata);
+        }
         // create the package
-        return new(header,entries);
+        return gfs;
     }
     public static RevergePackage Open(string path)
     {

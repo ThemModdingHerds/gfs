@@ -34,6 +34,37 @@ public class RevergePackageMetadata() : Dictionary<string,int>()
         writer.Write(this);
         writer.Close();
     }
+    public void Add(RevergePackageMetadata other)
+    {
+        foreach(var pair in other)
+        {
+            if(ContainsKey(pair.Key))
+                continue;
+            Add(pair.Key,pair.Value);
+        }
+    }
+    public void Merge(RevergePackageMetadata other)
+    {
+        foreach(var pair in other)
+        {
+            if(ContainsKey(pair.Key))
+            {
+                this[pair.Key] = pair.Value;
+                continue;
+            }
+            Add(pair.Key,pair.Value);
+        }
+    }
+    public void Add(IEnumerable<RevergePackageMetadata> others)
+    {
+        foreach(RevergePackageMetadata metadata in others)
+            Add(metadata);
+    }
+    public void Merge(IEnumerable<RevergePackageMetadata> others)
+    {
+        foreach(RevergePackageMetadata metadata in others)
+            Merge(metadata);
+    }
 }
 public static class RevergePackageMetadataExt
 {

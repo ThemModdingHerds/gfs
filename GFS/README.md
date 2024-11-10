@@ -58,7 +58,7 @@ using ThemModdingHerds.IO;
 BinaryReader reader = new BinaryReader(someStreamOrFilePath);
 RevergePackage file = reader.ReadRevergePackage(); // extends List<RevergePackageEntry>
 RevergePackageHeader header = file.Header; // contains file count, offset, version and file identifier
-RevergePackageEntry entry = file[index]; // contains all the files and their data
+RevergePackageEntry entry = file[index]; // the entry contains the path to the file and its data
 ```
 
 or parsing a folder into one:
@@ -66,7 +66,7 @@ or parsing a folder into one:
 ```c#
 using ThemModdingHerds.GFS;
 
-GFSFile file = GFSFile.Read(pathToFolder); // now the folder became a .gfs file
+RevergePackage file = RevergePackage.Open(pathToFolder); // now the folder became a .gfs file
 ```
 
 ## Credits

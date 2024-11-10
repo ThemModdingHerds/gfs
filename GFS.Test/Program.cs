@@ -2,16 +2,13 @@
 using ThemModdingHerds.GFS;
 using ThemModdingHerds.IO.Binary;
 
-string path1 = "G:\\AntiAntiDebug";
-string path2 = "G:\\SteamLibrary\\steamapps\\common\\Them's Fightin' Herds\\data01\\ai-libs.gfs";
-string path = "test.gfs";
-
-RevergePackage file1 = RevergePackage.Create(path1);
-RevergePackage file2 = RevergePackage.Open(path2);
-RevergePackage file = RevergePackage.Merge(file1,file2);
-
-Writer writer = new(path);
-writer.Write(file);
-writer.Close();
-RevergePackage gfs = RevergePackage.Open(path);
-Console.WriteLine(gfs);
+string data01 = "G:\\SteamLibrary\\steamapps\\common\\Them's Fightin' Herds\\data01";
+string path = "ai-libs";
+string filename = $"{path}.gfs";
+string bakname = $"{filename}.bak";
+RevergePackage folder = RevergePackage.Create(Path.Combine(data01,path));
+RevergePackage bak = RevergePackage.Open(bakname);
+folder.Metadata = bak.Metadata;
+File.Delete(filename);
+Writer writer = new(filename);
+writer.Write(folder);

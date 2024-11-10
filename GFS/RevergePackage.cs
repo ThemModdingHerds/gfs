@@ -1,24 +1,24 @@
 ﻿using ThemModdingHerds.IO.Binary;
 
 namespace ThemModdingHerds.GFS;
-public class RevergePackage(RevergePackageHeader header) : Dictionary<string,RevergePackageEntry>()
+public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair<string, RevergePackageEntry>> entries,RevergePackageMetadata metadata) : Dictionary<string,RevergePackageEntry>(entries)
 {
     public RevergePackageHeader Header { get; set; } = header;
+    public RevergePackageMetadata Metadata { get; set;} = metadata;
     public static RevergePackage Merge(RevergePackage gfs,params RevergePackage[] files) => Merge(gfs.Header,files);
     public static RevergePackage Merge(RevergePackageHeader header,params RevergePackage[] files) => Merge(header.Identifier,header.Version,files);
     public static RevergePackage Merge(string id,string ver,params RevergePackage[] files)
     {
         RevergePackageHeader header = new(id,ver);
-        List<RevergePackageEntry> entries = [];
         RevergePackage gfs = new(header);
         foreach(RevergePackage pak in files)
-            entries.AddRange(pak.Values);
-        gfs.AddRange(entries);
-        RevergePackageExt.RecalculateEntries(gfs);
+            gfs.AddRange(pak);
+        gfs.RecalculateEntries();
         return gfs;
     }
-    public static RevergePackage Merge(params RevergePackage[] files) => Merge(files[0].Header.Identifier,files[0].Header.Version,files);
-    public static RevergePackage Create(string path,string id = RevergePackageHeader.IDENTIFIER,string ver = RevergePackageHeader.VERSION)
+    public static RevergePackage Create(string path) => Create(path,RevergePackageHeader.IDENTIFIER,RevergePackageHeader.VERSION);
+    public static RevergePackage Create(string path,RevergePackageHeader header) => Create(path,header.Identifier,header.Version);
+    public static RevergePackage Create(string path,string id,string ver)
     {
         // check if path exists
         if(!Directory.Exists(path))
@@ -27,33 +27,34 @@ public class RevergePackage(RevergePackageHeader header) : Dictionary<string,Rev
         if(!(File.GetAttributes(path) == FileAttributes.Directory))
             throw new Exception($"{path} is not a directory");
         // get all files in that folder
-        string[] files = Directory.GetFiles(path,"*.*",SearchOption.AllDirectories);
-        List<RevergePackageEntry> entries = [];
+        DirectoryInfo folder = new(path);
+        List<string> files = folder.GetFiles("*.*",SearchOption.AllDirectories).Select((s) => s.FullName).ToList();
+        RevergePackageHeader header = new(0,files.Count,id,ver);
+        files.Sort();
+        Dictionary<string,RevergePackageEntry> entries = [];
         // calculate the dataoffset for the header
-        int dataoffset = RevergePackageHeader.SIZE(id,ver);
+        int dataoffset = header.DataSize();
         foreach(string file in files)
         {
             // create an entry from the file
-            RevergePackageEntry entry = RevergePackageEntry.Create(path,file);
+            RevergePackageEntry entry = RevergePackageEntry.Create(folder.FullName,file);
             // calculate the size of the entry
-            int size = RevergePackageEntry.SIZE(entry.Path);
-            dataoffset += size; // add to dataoffset and...
-            entries.Add(entry); // add the entry to the list
+            dataoffset += entry.DataSize(); // add to dataoffset and...
+            entries.Add(entry.Path,entry); // add the entry to the list
         }
+        header.DataOffset = dataoffset;
         // create the header from the entries and dataoffset we've calculated
-        RevergePackageHeader header = new(dataoffset,entries.Count,id,ver);
         // calculate the data offset for each entry
         long runningOffset = dataoffset;
-        foreach(RevergePackageEntry entry in entries)
+        foreach(var pair in entries)
         {
+            RevergePackageEntry entry = pair.Value;
             runningOffset += (entry.Alignment - (runningOffset % entry.Alignment)) % entry.Alignment;
             entry.Offset = runningOffset;
             runningOffset += entry.Size;
         }
         // create the package
-        RevergePackage gfs = new(header);
-        gfs.AddRange(entries);
-        return gfs;
+        return new(header,entries);
     }
     public static RevergePackage Open(string path)
     {
@@ -61,6 +62,14 @@ public class RevergePackage(RevergePackageHeader header) : Dictionary<string,Rev
         RevergePackage gfs = reader.ReadRevergePackage();
         reader.Close();
         return gfs;
+    }
+    public RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair<string,RevergePackageEntry>> entries): this(header,entries,new(entries))
+    {
+
+    }
+    public RevergePackage(RevergePackageHeader header): this(header,[])
+    {
+
     }
     public RevergePackage(): this(new RevergePackageHeader())
     {
@@ -82,41 +91,72 @@ public class RevergePackage(RevergePackageHeader header) : Dictionary<string,Rev
         }
         Add(entry.Path,entry);
     }
+    public void Add(KeyValuePair<string,RevergePackageEntry> pair) => Add(pair.Value);
     public void AddRange(IEnumerable<RevergePackageEntry> entries)
     {
         foreach(RevergePackageEntry entry in entries)
             Add(entry);
     }
-}
-public static class RevergePackageExt
-{
-    public static void RecalculateEntries(RevergePackage gfs)
+    public void AddRange(IEnumerable<KeyValuePair<string,RevergePackageEntry>> entries)
     {
-        gfs.Header.EntryCount = gfs.Count;
-        gfs.Header.DataOffset = RevergePackageHeader.SIZE(gfs.Header.Identifier,gfs.Header.Version);
-        long runningOffset = gfs.Header.DataOffset;
-        foreach(RevergePackageEntry entry in gfs.Values)
+        foreach(var pair in entries)
+            Add(pair);
+    }
+    public RevergePackage Merge(params RevergePackage[] gfs)
+    {
+        return Merge(this,gfs);
+    }
+    public void RecalculateEntries()
+    {
+        Header.EntryCount = this.Length();
+        Header.DataOffset = Header.DataSize();
+        long runningOffset = Header.DataOffset;
+        for(long i = 0;i < Header.EntryCount;i++)
         {
-            int size = RevergePackageEntry.SIZE(entry.Path);
-            gfs.Header.DataOffset += size;
+            var pair = this.ElementAt(i);
+            RevergePackageEntry entry = pair?.Value ?? throw new Exception();
+            Header.DataOffset += entry.DataSize();
             runningOffset += (entry.Alignment - (runningOffset % entry.Alignment)) % entry.Alignment;
             entry.Offset = runningOffset;
             runningOffset += entry.Size;
         }
     }
+    public override string ToString()
+    {
+        return $"RevergePackage({Header}) = {Header.EntryCount}";
+    }
+}
+public static class RevergePackageExt
+{
     public static RevergePackage ReadRevergePackage(this Reader reader)
     {
         RevergePackageHeader header = reader.ReadRevergePackageHeader();
-        List<RevergePackageEntry> entries = reader.ReadRevergePackageEntries(header);
+        Dictionary<string,RevergePackageEntry> entries = reader.ReadRevergePackageEntries(header);
 
-        RevergePackage gfs = new(header);
-        gfs.AddRange(entries);
-        return gfs;
+        return new(header,entries);
     }
     public static void Write(this Writer writer,RevergePackage file)
     {
-        RecalculateEntries(file);
+        writer.Endianness = IO.Endianness.Big;
         writer.Write(file.Header);
-        writer.Write(file.Values.ToList());
+        foreach(var pair in file.Metadata)
+        {
+            RevergePackageEntry entry = file[pair.Key];
+            int alignment = pair.Value;
+            entry.Alignment = alignment;
+            writer.WritePascal64String(entry.Path);
+            writer.Write(entry.Size);
+            writer.Write(alignment);
+        }
+        long runningOffset = file.Header.DataOffset;
+        foreach(var pair in file.Metadata)
+        {
+            RevergePackageEntry entry = file[pair.Key];
+            int alignment = pair.Value;
+            runningOffset += (alignment - (runningOffset % alignment)) % alignment;
+            writer.Offset = runningOffset;
+            writer.Write(entry.Data);
+            runningOffset += entry.Size;
+        }
     }
 }

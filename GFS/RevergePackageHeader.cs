@@ -24,6 +24,11 @@ public class RevergePackageHeader(int offset, long entryCount, string identifier
     }
     public bool Verify(string id,string ver) => Identifier == id && Version == ver;
     public bool Verify() => Verify(IDENTIFIER,VERSION);
+    public int DataSize() => SIZE(Identifier,Version);
+    public override string ToString()
+    {
+        return $"{Identifier};{Version}@0x{DataOffset:X4}";
+    }
 }
 public static class RevergePackageHeaderExt
 {

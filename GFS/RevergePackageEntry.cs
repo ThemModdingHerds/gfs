@@ -2,7 +2,7 @@
 using ThemModdingHerds.IO;
 
 namespace ThemModdingHerds.GFS;
-public class RevergePackageEntry(string path,long size,int alignment)
+public class RevergePackageEntry(string path,long size,int alignment) : IComparable
 {
     public static int SIZE(string path) => 8 + path.Length + 8 + 4;
     public string Path {get;set;} = path;
@@ -25,6 +25,19 @@ public class RevergePackageEntry(string path,long size,int alignment)
         byte[] data = File.ReadAllBytes(filepath);
         return new(path,data.Length,alignment,data);
     }
+    public int DataSize() => SIZE(Path);
+    public int CompareTo(object? obj)
+    {
+        if(obj is RevergePackageEntry entry)
+        {
+            return entry.Path.CompareTo(Path);
+        }
+        return 1;
+    }
+    public override string ToString()
+    {
+        return $"{Path};{Alignment};{Size}@0x{Offset:X4}";
+    }
 }
 public static class RevergePackageEntryExt
 {
@@ -42,11 +55,15 @@ public static class RevergePackageEntryExt
         writer.WritePascal64String(entry.Path);
         writer.Write(entry.Size);
         writer.Write(entry.Alignment);
+        long oldOffset = writer.Offset;
+        writer.Offset = entry.Offset;
+        writer.Write(entry.Data);
+        writer.Offset = oldOffset;
     }
-    public static List<RevergePackageEntry> ReadRevergePackageEntries(this Reader reader, RevergePackageHeader header)
+    public static Dictionary<string,RevergePackageEntry> ReadRevergePackageEntries(this Reader reader, RevergePackageHeader header)
     {
         reader.Endianness = Endianness.Big;
-        List<RevergePackageEntry> entries = [];
+        Dictionary<string,RevergePackageEntry> entries = [];
 
         long runningOffset = header.DataOffset;
 
@@ -66,24 +83,9 @@ public static class RevergePackageEntryExt
             entry.Data = data;
 
             runningOffset += entry.Size;
-            entries.Add(entry);
+            entries.Add(entry.Path,entry);
         }
 
         return entries;
-    }
-    public static void Write(this Writer writer,IEnumerable<RevergePackageEntry> entries)
-    {
-        writer.Endianness = Endianness.Big;
-        foreach (RevergePackageEntry entry in entries)
-        {
-            Write(writer,entry);
-
-            long oldOffset = writer.Offset;
-            writer.Offset = entry.Offset;
-
-            writer.Write(entry.Data);
-
-            writer.Offset = oldOffset;
-        }
     }
 }

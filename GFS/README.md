@@ -71,6 +71,6 @@ RevergePackage file = RevergePackage.Open(pathToFolder); // now the folder becam
 
 ## Credits
 
-- [SkullMod][skullmod-github-link]
+- [Devyatyi9, 0xFAIL and their .gfs template on 010 Editor][gfs-template-link]
 
-[skullmod-github-link]: https://github.com/BlenderCN-Org/SkullMod
+[gfs-template-link]: https://www.sweetscape.com/010editor/repository/templates/file_info.php?file=GFS_RevergeLabs.bt&type=0&sort=

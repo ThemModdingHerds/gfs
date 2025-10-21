@@ -1,10 +1,9 @@
 ﻿using ThemModdingHerds.IO.Binary;
 
 namespace ThemModdingHerds.GFS;
-public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair<string, RevergePackageEntry>> entries,RevergePackageMetadata metadata) : Dictionary<string,RevergePackageEntry>(entries)
+public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair<string, RevergePackageEntry>> entries) : Dictionary<string,RevergePackageEntry>(entries)
 {
     public RevergePackageHeader Header { get; set; } = header;
-    public RevergePackageMetadata Metadata { get; set;} = metadata;
     public static RevergePackage Merge(RevergePackage gfs,params RevergePackage[] files) => Merge(gfs.Header,files);
     public static RevergePackage Merge(RevergePackageHeader header,params RevergePackage[] files) => Merge(header.Identifier,header.Version,files);
     public static RevergePackage Merge(string id,string ver,params RevergePackage[] files)
@@ -12,10 +11,7 @@ public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair
         RevergePackageHeader header = new(id,ver);
         RevergePackage gfs = new(header);
         foreach(RevergePackage pak in files)
-        {
-            gfs.Metadata.Add(pak.Metadata);
             gfs.AddRange(pak);
-        }
         gfs.RecalculateEntries();
         return gfs;
     }
@@ -57,26 +53,14 @@ public class RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair
             runningOffset += entry.Size;
         }
         RevergePackage gfs = new(header,entries);
-        // check if perhaps a metadata file exists
-        string metadatapath = $"{path}.metadata";
-        if(File.Exists(metadatapath))
-        {
-            RevergePackageMetadata metadata = RevergePackageMetadata.Read(metadatapath);
-            gfs.Metadata.Merge(metadata);
-        }
         // create the package
         return gfs;
     }
     public static RevergePackage Open(string path)
     {
-        Reader reader = new(path);
+        using Reader reader = new(path);
         RevergePackage gfs = reader.ReadRevergePackage();
-        reader.Close();
         return gfs;
-    }
-    public RevergePackage(RevergePackageHeader header,IEnumerable<KeyValuePair<string,RevergePackageEntry>> entries): this(header,entries,new(entries))
-    {
-
     }
     public RevergePackage(RevergePackageHeader header): this(header,[])
     {
@@ -150,20 +134,20 @@ public static class RevergePackageExt
     {
         writer.Endianness = IO.Endianness.Big;
         writer.Write(file.Header);
-        foreach(var pair in file.Metadata)
+        foreach(var pair in file)
         {
             RevergePackageEntry entry = file[pair.Key];
-            int alignment = pair.Value;
+            int alignment = pair.Value.Alignment;
             entry.Alignment = alignment;
             writer.WritePascal64String(entry.Path);
             writer.Write(entry.Size);
             writer.Write(alignment);
         }
         long runningOffset = file.Header.DataOffset;
-        foreach(var pair in file.Metadata)
+        foreach(var pair in file)
         {
             RevergePackageEntry entry = file[pair.Key];
-            int alignment = pair.Value;
+            int alignment = pair.Value.Alignment;
             runningOffset += (alignment - (runningOffset % alignment)) % alignment;
             writer.Offset = runningOffset;
             writer.Write(entry.Data);

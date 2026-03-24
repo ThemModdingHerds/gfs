@@ -41,7 +41,7 @@ size_t runningOffset = header.dataOffset;
 for(size_t i = 0;i < header.entryCount;i++)
 {
     Entry entry = entries[i];
-    runningOffset += (entry.alignment - (runningOffset % entry.size)) % entry.alignment
+    runningOffset += (entry.alignment - (runningOffset % entry.alignment)) % entry.alignment
     // runningOffset is the position of the data from entries[i]
     runningOffset += entry.size;
 }

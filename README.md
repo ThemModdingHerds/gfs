@@ -1,11 +1,76 @@
-# ThemModdingHerds.GFS
+# Reverge Package File
 
-[See here for more][real-readme]
+Reverge Package File (`.gfs`) parser library for C#
 
-[real-readme]: ./GFS/README.md
+## Structure
 
-## License
+Everything is `Big Endian`
 
-The License is [MIT License][license-path]
+```c
+struct Pascal64String
+{
+    size_t length;
+    char chars[length];
+};
 
-[license-path]: ./GFS/LICENSE
+struct Header
+{
+    uint dataOffset;
+    Pascal64String identifier;
+    Pascal64String version;
+    size_t entryCount;
+};
+
+struct Entry
+{
+    Pascal64String path;
+    size_t size;
+    int alignment;
+};
+
+Header header;
+Entry entries[header.entryCount];
+
+```
+
+## Calculate Data Offset
+
+```c
+size_t runningOffset = header.dataOffset;
+
+for(size_t i = 0;i < header.entryCount;i++)
+{
+    Entry entry = entries[i];
+    runningOffset += (entry.alignment - (runningOffset % entry.size)) % entry.alignment
+    // runningOffset is the position of the data from entries[i]
+    runningOffset += entry.size;
+}
+```
+
+## Usage
+
+For reading:
+
+```c#
+using ThemModdingHerds.GFS;
+using ThemModdingHerds.IO;
+
+BinaryReader reader = new BinaryReader(someStreamOrFilePath);
+RevergePackage file = reader.ReadRevergePackage(); // extends List<RevergePackageEntry>
+RevergePackageHeader header = file.Header; // contains file count, offset, version and file identifier
+RevergePackageEntry entry = file[index]; // the entry contains the path to the file and its data
+```
+
+or parsing a folder into one:
+
+```c#
+using ThemModdingHerds.GFS;
+
+RevergePackage file = RevergePackage.Open(pathToFolder); // now the folder became a .gfs file
+```
+
+## Credits
+
+- [Devyatyi9, 0xFAIL and their .gfs template on 010 Editor][gfs-template-link]
+
+[gfs-template-link]: https://www.sweetscape.com/010editor/repository/templates/file_info.php?file=GFS_RevergeLabs.bt&type=0&sort=
